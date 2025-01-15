@@ -9,8 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type SignUpFormData = {
   name: string;
@@ -20,6 +23,8 @@ type SignUpFormData = {
 };
 
 const SignUpPage = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<SignUpFormData>({
     name: "",
     username: "",
@@ -27,10 +32,26 @@ const SignUpPage = () => {
     role: "user",
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted");
-    console.log(formData);
+
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/signup` ||
+          "http://localhost:3000/auth/signup",
+        formData,
+      );
+
+      toast.success("Sign up successful!");
+      console.log(response);
+      router.push("/");
+    } catch (error) {
+      toast.error("Error signing up!");
+      console.error("Error signing up:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRoleChange = (value: "admin" | "user") => {
@@ -49,12 +70,14 @@ const SignUpPage = () => {
           className="flex w-full flex-col gap-4 mt-10"
         >
           <Input
+            disabled={loading}
             placeholder="Enter your full name"
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
           <Input
+            disabled={loading}
             placeholder="Enter your username"
             type="text"
             value={formData.username}
@@ -63,6 +86,7 @@ const SignUpPage = () => {
             }
           />
           <Input
+            disabled={loading}
             placeholder="Enter your password"
             type="password"
             value={formData.password}
@@ -70,7 +94,11 @@ const SignUpPage = () => {
               setFormData({ ...formData, password: e.target.value })
             }
           />
-          <Select value={formData.role} onValueChange={handleRoleChange}>
+          <Select
+            value={formData.role}
+            onValueChange={handleRoleChange}
+            disabled={loading}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
@@ -79,8 +107,12 @@ const SignUpPage = () => {
               <SelectItem value="admin">Admin</SelectItem>
             </SelectContent>
           </Select>
-          <Button type="submit" className="bg-green-600 hover:bg-green-700">
-            Login
+          <Button
+            type="submit"
+            className="bg-green-600 hover:bg-green-700"
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Sign Up"}
           </Button>
         </form>
         <Link href="/login" className="text-sm italic font-light underline">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type LoginFormData = {
   username: string;
@@ -11,6 +12,7 @@ type LoginFormData = {
 };
 
 const LoginPage = () => {
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<LoginFormData>({
     username: "",
     password: "",
@@ -18,6 +20,11 @@ const LoginPage = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      toast.success("Login successful!");
+    }, 2000);
     console.log("Form submitted");
     console.log(formData);
   };
@@ -34,6 +41,7 @@ const LoginPage = () => {
           className="flex w-full flex-col gap-4 mt-10"
         >
           <Input
+            disabled={loading}
             placeholder="Enter your username"
             type="text"
             value={formData.username}
@@ -42,6 +50,7 @@ const LoginPage = () => {
             }
           />
           <Input
+            disabled={loading}
             placeholder="Enter your password"
             type="password"
             value={formData.password}
@@ -49,8 +58,12 @@ const LoginPage = () => {
               setFormData({ ...formData, password: e.target.value })
             }
           />
-          <Button type="submit" className="bg-green-600 hover:bg-green-700">
-            Login
+          <Button
+            disabled={loading}
+            type="submit"
+            className="bg-green-600 hover:bg-green-700"
+          >
+            {loading ? "Loading..." : "Login"}
           </Button>
         </form>
         <Link href="/signup" className="text-sm italic font-light underline">
