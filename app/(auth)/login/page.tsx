@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 type LoginFormData = {
@@ -21,6 +21,36 @@ const LoginPage = () => {
     password: "",
   });
 
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      return;
+    }
+
+    const tokenValid = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (response) {
+          toast.success("You are already logged in!");
+          router.push("/");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    tokenValid();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -33,7 +63,12 @@ const LoginPage = () => {
       );
 
       toast.success("Login up successful!");
-      console.log(response);
+      const { accessToken, name, userId } = response.data;
+
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("name", name);
+      localStorage.setItem("userId", userId);
+
       router.push("/");
     } catch (error) {
       toast.error("Error logging in!");
