@@ -1,13 +1,23 @@
 "use client";
 
+import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+type Product = {
+  id: number;
+  name: string;
+  description?: string;
+  price: number;
+  category: string;
+};
 
 export default function Home() {
   const router = useRouter();
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -39,6 +49,19 @@ export default function Home() {
     tokenValid();
   }, []);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/item`,
+      );
+      const data = response.data;
+      console.log(data);
+      setProducts(data);
+    };
+
+    fetchProducts();
+  }, []);
+
   const handleLogout = () => {
     localStorage.clear();
     window.location.reload();
@@ -52,6 +75,20 @@ export default function Home() {
         {" "}
         Logout
       </Button>
+      <Button onClick={() => router.push("/dashboard")}>Dashboard</Button>
+      {products.map((product, index) => (
+        <ProductCard
+          key={index}
+          name={product.name}
+          description={
+            product.description
+              ? product.description
+              : "Description not available"
+          }
+          price={product.price}
+          category={product.category}
+        />
+      ))}
     </div>
   );
 }
