@@ -2,7 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -12,21 +14,33 @@ type LoginFormData = {
 };
 
 const LoginPage = () => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<LoginFormData>({
     username: "",
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
+
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login` ||
+          "http://localhost:3000/auth/login",
+        formData,
+      );
+
+      toast.success("Login up successful!");
+      console.log(response);
+      router.push("/");
+    } catch (error) {
+      toast.error("Error logging in!");
+      console.error("Error logging in:", error);
+    } finally {
       setLoading(false);
-      toast.success("Login successful!");
-    }, 2000);
-    console.log("Form submitted");
-    console.log(formData);
+    }
   };
 
   return (
